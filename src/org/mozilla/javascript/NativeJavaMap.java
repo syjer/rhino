@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class NativeJavaMap extends NativeJavaObject implements SymbolScriptable {
 
-    private Map<?, ?> map;
+    private Map<Object, Object> map;
     private Class<?> cls;
 
     public NativeJavaMap(Scriptable scope, Object map) {
@@ -22,7 +22,7 @@ public class NativeJavaMap extends NativeJavaObject implements SymbolScriptable 
         if (!Map.class.isAssignableFrom(cl)) {
             throw new RuntimeException("Map expected");
         }
-        this.map = (Map<?, ?>) map;
+        this.map = (Map<Object, Object>) map;
         this.cls = cl;
     }
 
@@ -53,17 +53,40 @@ public class NativeJavaMap extends NativeJavaObject implements SymbolScriptable 
 
     @Override
     public Object get(String id, Scriptable start) {
-        return null; //FIXME implement
+        return getInternal(id, start);
     }
 
     @Override
     public Object get(int index, Scriptable start) {
-        return null; //FIXME implement
+        return getInternal(index, start);
+    }
+
+    private Object getInternal(Object key, Scriptable start) {
+        if (map.containsKey(key)) {
+            Context cx = Context.getContext();
+            Object obj = map.get(key);
+            return cx.getWrapFactory().wrap(cx, this, obj, obj.getClass());
+        }
+        Object result = super.get(key.toString(), start);
+        if (result == NOT_FOUND && !ScriptableObject.hasProperty(getPrototype(), key.toString())) {
+            throw Context.reportRuntimeError2("msg.java.member.not.found", map.getClass().getName(), key.toString());
+        }
+        return result;
     }
 
     @Override
     public Object get(Symbol key, Scriptable start) {
         return Scriptable.NOT_FOUND;
+    }
+
+    @Override
+    public void put(String id, Scriptable start, Object value) {
+        map.put(id, Context.jsToJava(value, Object.class));
+    }
+
+    @Override
+    public void put(int index, Scriptable start, Object value) {
+        map.put(index, Context.jsToJava(value, Object.class));
     }
 
     @Override
