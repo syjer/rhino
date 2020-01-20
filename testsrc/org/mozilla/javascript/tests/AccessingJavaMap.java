@@ -57,6 +57,8 @@ public class AccessingJavaMap extends TestCase {
 
         assertEquals("b", runScriptAsString("value['b']", map));
         assertEquals("c", runScriptAsString("value['c']", map));
+        assertEquals("b", runScriptAsString("value.b", map));
+        assertEquals("c", runScriptAsString("value.c", map));
     }
 
     public void testUpdatingJavaMapStringValues() {
@@ -66,8 +68,29 @@ public class AccessingJavaMap extends TestCase {
         map.put("c", "c");
 
         assertEquals("b", runScriptAsString("value['b']", map));
+        assertEquals("b", runScriptAsString("value.b", map));
         assertEquals("f", runScriptAsString("value['b']=\"f\";value['b']", map));
         assertEquals("f", map.get("b"));
+        assertEquals("g", runScriptAsString("value.b=\"g\";value.b", map));
+    }
+
+    public void testAccessMapInMap() {
+        Map<String, Map<String, String>> map = new HashMap<>();
+        map.put("a", new HashMap<>());
+        map.get("a").put("a", "a");
+
+        assertEquals("a", runScriptAsString("value['a']['a']", map));
+        assertEquals("a", runScriptAsString("value.a.a", map));
+    }
+
+    public void testUpdatingMapInMap() {
+        Map<String, Map<String, String>> map = new HashMap<>();
+        map.put("a", new HashMap<>());
+        map.get("a").put("a", "a");
+
+        assertEquals("a", runScriptAsString("value['a']['a']", map));
+        assertEquals("a", runScriptAsString("value.a.a", map));
+        assertEquals("b", runScriptAsString("value.a.a = 'b';value.a.a", map));
     }
 
     private int runScriptAsInt(final String scriptSourceText, final Object value) {
