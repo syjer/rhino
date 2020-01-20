@@ -14,6 +14,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -262,15 +263,17 @@ public class NativeJavaObject
         return (weight < CONVERSION_NONE);
     }
 
-    private static final int JSTYPE_UNDEFINED   = 0; // undefined type
-    private static final int JSTYPE_NULL        = 1; // null
-    private static final int JSTYPE_BOOLEAN     = 2; // boolean
-    private static final int JSTYPE_NUMBER      = 3; // number
-    private static final int JSTYPE_STRING      = 4; // string
-    private static final int JSTYPE_JAVA_CLASS  = 5; // JavaClass
-    private static final int JSTYPE_JAVA_OBJECT = 6; // JavaObject
-    private static final int JSTYPE_JAVA_ARRAY  = 7; // JavaArray
-    private static final int JSTYPE_OBJECT      = 8; // Scriptable
+    private static final int JSTYPE_UNDEFINED   = 0;  // undefined type
+    private static final int JSTYPE_NULL        = 1;  // null
+    private static final int JSTYPE_BOOLEAN     = 2;  // boolean
+    private static final int JSTYPE_NUMBER      = 3;  // number
+    private static final int JSTYPE_STRING      = 4;  // string
+    private static final int JSTYPE_JAVA_CLASS  = 5;  // JavaClass
+    private static final int JSTYPE_JAVA_OBJECT = 6;  // JavaObject
+    private static final int JSTYPE_JAVA_ARRAY  = 7;  // JavaArray
+    private static final int JSTYPE_JAVA_LIST   = 8;  // JavaList
+    private static final int JSTYPE_JAVA_MAP    = 9;  // JavaMap
+    private static final int JSTYPE_OBJECT      = 10; // Scriptable
 
     static final byte CONVERSION_TRIVIAL      = 1;
     static final byte CONVERSION_NONTRIVIAL   = 0;
@@ -373,6 +376,8 @@ public class NativeJavaObject
 
         case JSTYPE_JAVA_OBJECT:
         case JSTYPE_JAVA_ARRAY:
+        case JSTYPE_JAVA_LIST:
+        case JSTYPE_JAVA_MAP:
             Object javaObj = fromObj;
             if (javaObj instanceof Wrapper) {
                 javaObj = ((Wrapper)javaObj).unwrap();
@@ -384,7 +389,7 @@ public class NativeJavaObject
                 return 2;
             }
             else if (to.isPrimitive() && to != Boolean.TYPE) {
-                return (fromCode == JSTYPE_JAVA_ARRAY)
+                return (fromCode == JSTYPE_JAVA_ARRAY || fromCode == JSTYPE_JAVA_LIST || fromCode == JSTYPE_JAVA_MAP)
                        ? CONVERSION_NONE : 2 + getSizeRank(to);
             }
             break;
@@ -488,6 +493,11 @@ public class NativeJavaObject
             else if (value instanceof NativeJavaArray) {
                 return JSTYPE_JAVA_ARRAY;
             }
+            else if (value instanceof NativeJavaList) {
+                return JSTYPE_JAVA_LIST;
+            } else if (value instanceof NativeJavaMap) {
+                return JSTYPE_JAVA_MAP;
+            }
             else if (value instanceof Wrapper) {
                 return JSTYPE_JAVA_OBJECT;
             }
@@ -502,6 +512,12 @@ public class NativeJavaObject
             Class<?> valueClass = value.getClass();
             if (valueClass.isArray()) {
                 return JSTYPE_JAVA_ARRAY;
+            }
+            else if (List.class.isAssignableFrom(valueClass)) {
+                return JSTYPE_JAVA_LIST;
+            }
+            else if (Map.class.isAssignableFrom(valueClass)) {
+                return JSTYPE_JAVA_MAP;
             }
             return JSTYPE_JAVA_OBJECT;
         }
@@ -631,6 +647,8 @@ public class NativeJavaObject
 
         case JSTYPE_JAVA_OBJECT:
         case JSTYPE_JAVA_ARRAY:
+        case JSTYPE_JAVA_LIST:
+        case JSTYPE_JAVA_MAP:
             if (value instanceof Wrapper) {
               value = ((Wrapper)value).unwrap();
             }
