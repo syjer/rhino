@@ -36,6 +36,40 @@ public class NativeJavaMap extends NativeJavaObject implements SymbolScriptable 
         return map;
     }
 
+    @Override
+    public boolean has(String name, Scriptable start) {
+        return map.containsKey(name);
+    }
+
+    @Override
+    public boolean has(int index, Scriptable start) {
+        return map.containsKey(index);
+    }
+
+    @Override
+    public boolean has(Symbol key, Scriptable start) {
+        return false;
+    }
+
+    @Override
+    public Object get(String id, Scriptable start) {
+        return null; //FIXME implement
+    }
+
+    @Override
+    public Object get(int index, Scriptable start) {
+        return null; //FIXME implement
+    }
+
+    @Override
+    public Object get(Symbol key, Scriptable start) {
+        return Scriptable.NOT_FOUND;
+    }
+
+    @Override
+    public void delete(Symbol key) {
+    }
+
     public static NativeJavaMap wrap(Scriptable scope, Object map) {
         return new NativeJavaMap(scope, map);
     }

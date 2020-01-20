@@ -98,8 +98,7 @@ public class NativeJavaList extends NativeJavaObject implements SymbolScriptable
         if (0 <= index && index < list.size()) {
             list.remove(index);
             list.add(index, Context.jsToJava(value, Object.class));
-        }
-        else {
+        } else {
             throw Context.reportRuntimeError2(
                     "msg.java.array.index.out.of.bounds", String.valueOf(index),
                     String.valueOf(list.size() - 1));
@@ -109,10 +108,6 @@ public class NativeJavaList extends NativeJavaObject implements SymbolScriptable
     @Override
     public void delete(Symbol key) {
         // All symbols are read-only
-    }
-
-    public boolean jsFunction_includes(Object obj) {
-        return list.contains(obj);
     }
 
     @Override
