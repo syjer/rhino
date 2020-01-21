@@ -9,6 +9,7 @@ package org.mozilla.javascript.tests;
 import junit.framework.TestCase;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.tools.shell.Global;
 
@@ -20,10 +21,10 @@ import java.util.Map;
 /**
  * From @makusuko (Markus Sunela), imported from PR https://github.com/mozilla/rhino/pull/561
  */
-public class AccessingJavaMap extends TestCase {
+public class NativeJavaMapTest extends TestCase {
     protected final Global global = new Global();
 
-    public AccessingJavaMap() {
+    public NativeJavaMapTest() {
         global.init(ContextFactory.getGlobal());
     }
 
@@ -93,19 +94,35 @@ public class AccessingJavaMap extends TestCase {
         assertEquals("b", runScriptAsString("value.a.a = 'b';value.a.a", map));
     }
 
-    private int runScriptAsInt(final String scriptSourceText, final Object value) {
-        return ContextFactory.getGlobal().call(context -> {
-            Scriptable scope = context.initStandardObjects(global);
-            scope.put("value", scope, Context.javaToJS(value, scope));
-            return (int)Context.toNumber(context.evaluateString(scope, scriptSourceText, "", 1, null));
-        });
+    public void testKeys() {
+        Map<String, String> map = new HashMap<>();
+        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", map);
+        assertEquals(0, resEmpty.size());
+
+        map.put("a", "a");
+        map.put("b", "b");
+        map.put("c", "c");
+
+        NativeArray res = (NativeArray) runScript("Object.keys(value)", map);
+        assertEquals(3, res.size());
+        assertTrue(res.contains("a"));
+        assertTrue(res.contains("b"));
+        assertTrue(res.contains("c"));
     }
 
-    private String runScriptAsString(final String scriptSourceText, final Object value) {
+    private int runScriptAsInt(String scriptSourceText, Object value) {
+        return (int) Context.toNumber(runScript(scriptSourceText, value));
+    }
+
+    private String runScriptAsString(String scriptSourceText, Object value) {
+        return Context.toString(runScript(scriptSourceText, value));
+    }
+
+    private Object runScript(String scriptSourceText, Object value) {
         return ContextFactory.getGlobal().call(context -> {
             Scriptable scope = context.initStandardObjects(global);
             scope.put("value", scope, Context.javaToJS(value, scope));
-            return Context.toString(context.evaluateString(scope, scriptSourceText, "", 1, null));
+            return context.evaluateString(scope, scriptSourceText, "", 1, null);
         });
     }
 }

@@ -93,6 +93,11 @@ public class NativeJavaMap extends NativeJavaObject implements SymbolScriptable 
     public void delete(Symbol key) {
     }
 
+    @Override
+    public Object[] getIds() {
+        return map.keySet().toArray();
+    }
+
     public static NativeJavaMap wrap(Scriptable scope, Object map) {
         return new NativeJavaMap(scope, map);
     }

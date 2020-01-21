@@ -110,10 +110,6 @@ public class NativeJavaList extends NativeJavaObject implements SymbolScriptable
         // All symbols are read-only
     }
 
-    public boolean jsFunction_includes(Object obj) {
-        return list.contains(obj);
-    }
-
     @Override
     public Object getDefaultValue(Class<?> hint) {
         if (hint == null || hint == ScriptRuntime.StringClass) {

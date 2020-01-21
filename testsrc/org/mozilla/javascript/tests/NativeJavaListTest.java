@@ -9,6 +9,7 @@ package org.mozilla.javascript.tests;
 import junit.framework.TestCase;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.tools.shell.Global;
 
@@ -18,10 +19,10 @@ import java.util.List;
 /**
  * From @makusuko (Markus Sunela), imported from PR https://github.com/mozilla/rhino/pull/561
  */
-public class AccessingJavaList extends TestCase {
+public class NativeJavaListTest extends TestCase {
     protected final Global global = new Global();
 
-    public AccessingJavaList() {
+    public NativeJavaListTest() {
         global.init(ContextFactory.getGlobal());
     }
 
@@ -36,7 +37,7 @@ public class AccessingJavaList extends TestCase {
         assertEquals(3, runScriptAsInt("value[2]", list));
     }
 
-    public void testUpdateingJavaListIntegerValues() {
+    public void testUpdatingJavaListIntegerValues() {
         List<Number> list = new ArrayList<>();
         list.add(1);
         list.add(2);
@@ -57,7 +58,7 @@ public class AccessingJavaList extends TestCase {
         assertEquals("c", runScriptAsString("value[2]", list));
     }
 
-    public void testUpdatetingJavaListStringValues() {
+    public void testUpdatingJavaListStringValues() {
         List<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
@@ -68,19 +69,35 @@ public class AccessingJavaList extends TestCase {
         assertEquals("f", list.get(1));
     }
 
-    private int runScriptAsInt(final String scriptSourceText, final Object value) {
-        return ContextFactory.getGlobal().call(context -> {
-            Scriptable scope = context.initStandardObjects(global);
-            scope.put("value", scope, Context.javaToJS(value, scope));
-            return (int)Context.toNumber(context.evaluateString(scope, scriptSourceText, "", 1, null));
-        });
+    public void testKeys() {
+        List<String> list = new ArrayList<>();
+        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", list);
+        assertEquals(0, resEmpty.size());
+
+        list.add("a");
+        list.add("b");
+        list.add("c");
+
+        NativeArray res = (NativeArray) runScript("Object.keys(value)", list);
+        assertEquals(3, res.size());
+        assertTrue(res.contains("0"));
+        assertTrue(res.contains("1"));
+        assertTrue(res.contains("2"));
     }
 
-    private String runScriptAsString(final String scriptSourceText, final Object value) {
+    private int runScriptAsInt(String scriptSourceText, Object value) {
+        return (int) Context.toNumber(runScript(scriptSourceText, value));
+    }
+
+    private String runScriptAsString(String scriptSourceText, Object value) {
+        return Context.toString(runScript(scriptSourceText, value));
+    }
+
+    private Object runScript(String scriptSourceText, Object value) {
         return ContextFactory.getGlobal().call(context -> {
             Scriptable scope = context.initStandardObjects(global);
             scope.put("value", scope, Context.javaToJS(value, scope));
-            return Context.toString(context.evaluateString(scope, scriptSourceText, "", 1, null));
+            return context.evaluateString(scope, scriptSourceText, "", 1, null);
         });
     }
 }
