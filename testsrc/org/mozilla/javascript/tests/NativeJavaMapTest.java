@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * From @makusuko (Markus Sunela), imported from PR https://github.com/mozilla/rhino/pull/561
@@ -96,14 +97,14 @@ public class NativeJavaMapTest extends TestCase {
 
     public void testKeys() {
         Map<String, String> map = new HashMap<>();
-        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", map);
+        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", map, Function.identity());
         assertEquals(0, resEmpty.size());
 
         map.put("a", "a");
         map.put("b", "b");
         map.put("c", "c");
 
-        NativeArray res = (NativeArray) runScript("Object.keys(value)", map);
+        NativeArray res = (NativeArray) runScript("Object.keys(value)", map, Function.identity());
         assertEquals(3, res.size());
         assertTrue(res.contains("a"));
         assertTrue(res.contains("b"));
@@ -111,18 +112,18 @@ public class NativeJavaMapTest extends TestCase {
     }
 
     private int runScriptAsInt(String scriptSourceText, Object value) {
-        return (int) Context.toNumber(runScript(scriptSourceText, value));
+        return runScript(scriptSourceText, value, Context::toNumber).intValue();
     }
 
     private String runScriptAsString(String scriptSourceText, Object value) {
-        return Context.toString(runScript(scriptSourceText, value));
+        return runScript(scriptSourceText, value, Context::toString);
     }
 
-    private Object runScript(String scriptSourceText, Object value) {
+    private <T> T runScript(String scriptSourceText, Object value, Function<Object, T> convert) {
         return ContextFactory.getGlobal().call(context -> {
             Scriptable scope = context.initStandardObjects(global);
             scope.put("value", scope, Context.javaToJS(value, scope));
-            return context.evaluateString(scope, scriptSourceText, "", 1, null);
+            return convert.apply(context.evaluateString(scope, scriptSourceText, "", 1, null));
         });
     }
 }

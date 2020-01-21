@@ -15,6 +15,7 @@ import org.mozilla.javascript.tools.shell.Global;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * From @makusuko (Markus Sunela), imported from PR https://github.com/mozilla/rhino/pull/561
@@ -71,14 +72,14 @@ public class NativeJavaListTest extends TestCase {
 
     public void testKeys() {
         List<String> list = new ArrayList<>();
-        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", list);
+        NativeArray resEmpty = (NativeArray) runScript("Object.keys(value)", list, Function.identity());
         assertEquals(0, resEmpty.size());
 
         list.add("a");
         list.add("b");
         list.add("c");
 
-        NativeArray res = (NativeArray) runScript("Object.keys(value)", list);
+        NativeArray res = (NativeArray) runScript("Object.keys(value)", list, Function.identity());
         assertEquals(3, res.size());
         assertTrue(res.contains("0"));
         assertTrue(res.contains("1"));
@@ -86,18 +87,18 @@ public class NativeJavaListTest extends TestCase {
     }
 
     private int runScriptAsInt(String scriptSourceText, Object value) {
-        return (int) Context.toNumber(runScript(scriptSourceText, value));
+        return runScript(scriptSourceText, value, Context::toNumber).intValue();
     }
 
     private String runScriptAsString(String scriptSourceText, Object value) {
-        return Context.toString(runScript(scriptSourceText, value));
+        return runScript(scriptSourceText, value, Context::toString);
     }
 
-    private Object runScript(String scriptSourceText, Object value) {
+    private <T> T runScript(String scriptSourceText, Object value, Function<Object, T> convert) {
         return ContextFactory.getGlobal().call(context -> {
             Scriptable scope = context.initStandardObjects(global);
             scope.put("value", scope, Context.javaToJS(value, scope));
-            return context.evaluateString(scope, scriptSourceText, "", 1, null);
+            return convert.apply(context.evaluateString(scope, scriptSourceText, "", 1, null));
         });
     }
 }
