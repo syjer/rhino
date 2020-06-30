@@ -2160,7 +2160,7 @@ public class ClassFileWriter {
                 case ByteCode.INVOKEVIRTUAL:
                 case ByteCode.INVOKESPECIAL:
                 case ByteCode.INVOKESTATIC:
-                case ByteCode.INVOKEINTERFACE:
+                case ByteCode.INVOKEINTERFACE: {
                     index = getOperand(bci + 1, 2);
                     FieldOrMethodRef m = (FieldOrMethodRef)
                         itsConstantPool.getConstantData(index);
@@ -2186,25 +2186,27 @@ public class ClassFileWriter {
                     }
                     int rParen = methodType.indexOf(')');
                     String returnType = methodType.substring(rParen + 1);
-                    returnType = descriptorToInternalName(returnType);
+                    String internalName = descriptorToInternalName(returnType);
                     if (!returnType.equals("V")) {
-                        push(TypeInfo.fromType(returnType, itsConstantPool));
+                        push(TypeInfo.fromType(internalName, returnType, itsConstantPool));
                     }
                     break;
-                case ByteCode.INVOKEDYNAMIC:
+                }
+                case ByteCode.INVOKEDYNAMIC: {
                     index = getOperand(bci + 1, 2);
-                    methodType = (String) itsConstantPool.getConstantData(index);
-                    parameterCount = sizeOfParameters(methodType) >>> 16;
+                    String methodType = (String) itsConstantPool.getConstantData(index);
+                    int parameterCount = sizeOfParameters(methodType) >>> 16;
                     for (int i = 0; i < parameterCount; i++) {
                         pop();
                     }
-                    rParen = methodType.indexOf(')');
-                    returnType = methodType.substring(rParen + 1);
-                    returnType = descriptorToInternalName(returnType);
+                    int rParen = methodType.indexOf(')');
+                    String returnType = methodType.substring(rParen + 1);
+                    String internalName = descriptorToInternalName(returnType);
                     if (!returnType.equals("V")) {
-                        push(TypeInfo.fromType(returnType, itsConstantPool));
+                        push(TypeInfo.fromType(internalName, returnType, itsConstantPool));
                     }
                     break;
+                }
                 case ByteCode.GETFIELD:
                     pop();
                     // fall through
@@ -2213,7 +2215,7 @@ public class ClassFileWriter {
                     FieldOrMethodRef f = (FieldOrMethodRef)
                         itsConstantPool.getConstantData(index);
                     String fieldType = descriptorToInternalName(f.getType());
-                    push(TypeInfo.fromType(fieldType, itsConstantPool));
+                    push(TypeInfo.fromType(fieldType, f.getType(), itsConstantPool));
                     break;
                 case ByteCode.DUP:
                     type = pop();
@@ -2718,9 +2720,9 @@ public class ClassFileWriter {
                     ++start;
                     continue;
             }
-            String internalType =
-                descriptorToInternalName(paramType.toString());
-            int typeInfo = TypeInfo.fromType(internalType, itsConstantPool);
+            String typeDescriptor = paramType.toString();
+            String internalType = descriptorToInternalName(typeDescriptor);
+            int typeInfo = TypeInfo.fromType(internalType, typeDescriptor, itsConstantPool);
             initialLocals[localsTop++] = typeInfo;
             if (TypeInfo.isTwoWords(typeInfo)) {
                 localsTop++;

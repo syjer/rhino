@@ -59,12 +59,32 @@ final class TypeInfo {
     throw new IllegalArgumentException("expecting object type");
   }
 
+  private static boolean isDescriptorPrimitiveType(String typeDescriptor) {
+    if (typeDescriptor.length() != 1) {
+      return false;
+    }
+    switch (typeDescriptor.charAt(0)) {
+      case 'B': // sbyte
+      case 'C': // unicode char
+      case 'S': // short
+      case 'Z': // boolean
+      case 'I': // all of the above are verified as integers
+      case 'D': // double
+      case 'F': // float
+      case 'J': // long
+        return true;
+      default:
+        throw new IllegalArgumentException("bad type");
+    }
+  }
+
   /**
-   * Create type information from an internal type.
+   * Create type information from an internal name and the full java type descriptor.
    */
-  static final int fromType(String type, ConstantPool pool) {
-    if (type.length() == 1) {
-      switch (type.charAt(0)) {
+  static final int fromType(String internalName, String typeDescriptor, ConstantPool pool) {
+    boolean primitiveType = isDescriptorPrimitiveType(typeDescriptor);
+    if (primitiveType && internalName.length() == 1) {
+      switch (internalName.charAt(0)) {
         case 'B': // sbyte
         case 'C': // unicode char
         case 'S': // short
@@ -81,7 +101,7 @@ final class TypeInfo {
           throw new IllegalArgumentException("bad type");
       }
     }
-    return TypeInfo.OBJECT(type, pool);
+    return TypeInfo.OBJECT(internalName, pool);
   }
 
   static boolean isTwoWords(int type) {
