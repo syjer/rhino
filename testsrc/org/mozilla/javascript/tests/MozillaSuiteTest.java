@@ -49,7 +49,7 @@ public class MozillaSuiteTest {
     private final File jsFile;
     private final int optimizationLevel;
 
-    static final int[] OPT_LEVELS = { -1, 0, 9 };
+    static final int[] OPT_LEVELS = { -1/*, 0, 9*/ };
 
     public MozillaSuiteTest(File jsFile, int optimizationLevel) {
         this.jsFile = jsFile;
@@ -99,6 +99,7 @@ public class MozillaSuiteTest {
             files[i] = new File(testDir, tests[i]);
         }
         return files;
+        //return Arrays.stream(files).filter(f -> f.getName().contains("regress-98901")).toArray(File[]::new);
     }
 
     public static String loadFile(File f) throws IOException {

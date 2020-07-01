@@ -6,13 +6,15 @@
 
 package org.mozilla.javascript;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.mozilla.javascript.ast.FunctionNode;
 import org.mozilla.javascript.ast.Jump;
 import org.mozilla.javascript.ast.Scope;
 import org.mozilla.javascript.ast.ScriptNode;
+
+//import java.util.ArrayDeque;
+import java.util.ArrayList;
+//import java.util.Deque;
+import java.util.List;
 
 /**
  * This class transforms a tree to a lower-level representation for codegen.
@@ -64,8 +66,38 @@ public class NodeTransformer
 
         //uncomment to print tree before transformation
         if (Token.printTrees) System.out.println(tree.toStringTree(tree));
-        transformCompilationUnit_r(tree, tree, tree, createScopeObjects,
-                                   inStrictMode);
+        transformCompilationUnit_r(tree, tree, tree, createScopeObjects, inStrictMode);
+
+    }
+
+    private static boolean isInfixExpression(Node node) {
+        if (node == null) {
+            return false;
+        }
+        switch (node.getType()) {
+            case Token.COMMA:
+            case Token.OR:
+            case Token.AND:
+            case Token.BITOR:
+            case Token.BITXOR:
+            case Token.BITAND:
+            case Token.INSTANCEOF:
+            case Token.LE:
+            case Token.LT:
+            case Token.GE:
+            case Token.GT:
+            case Token.LSH:
+            case Token.URSH:
+            case Token.RSH:
+            case Token.ADD:
+            case Token.SUB:
+            case Token.MUL:
+            case Token.DIV:
+            case Token.MOD:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private void transformCompilationUnit_r(final ScriptNode tree,
@@ -74,12 +106,13 @@ public class NodeTransformer
                                             boolean createScopeObjects,
                                             boolean inStrictMode)
     {
+
         Node node = null;
       siblingLoop:
         for (;;) {
             Node previous = null;
             if (node == null) {
-                node = parent.getFirstChild();
+                node = /*isInfixExpression(parent) && isInfixExpression(parent.getFirstChild()) ? parent.getFirstChild().getNext() : */parent.getFirstChild();
             } else {
                 previous = node;
                 node = node.getNext();
@@ -405,6 +438,20 @@ public class NodeTransformer
                 break;
               }
             }
+
+            /*if (isInfixExpression(node)) {
+                Deque<Node> contiguousInfixExpressionsStack = new ArrayDeque<>();
+                contiguousInfixExpressionsStack.push(node);
+                Node left = node.getFirstChild();
+                while (isInfixExpression(left)) {
+                    contiguousInfixExpressionsStack.push(left);
+                    left = left.getFirstChild();
+                }
+                for (Node infixNode : contiguousInfixExpressionsStack) {
+                    transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope)infixNode : scope, createScopeObjects, inStrictMode);
+                }
+                return;
+            }*/
 
             transformCompilationUnit_r(tree, node,
                 node instanceof Scope ? (Scope)node : scope,

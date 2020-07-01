@@ -6,7 +6,9 @@
 
 package org.mozilla.javascript;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 import org.mozilla.javascript.ast.ArrayComprehension;
@@ -114,6 +116,7 @@ public final class IRFactory extends Parser
             System.out.println("IRFactory.transformTree");
             System.out.println(root.debugPrint());
         }
+
         ScriptNode script = (ScriptNode)transform(root);
 
         int sourceEndOffset = decompiler.getCurrentOffset();
@@ -132,7 +135,7 @@ public final class IRFactory extends Parser
     // functions into the AstNode subclasses.  OTOH that would make
     // IR transformation part of the public AST API - desirable?
     // Another possibility:  create AstTransformer interface and adapter.
-    public Node transform(AstNode node) {
+    private Node transform(AstNode node) {
         switch (node.getType()) {
           case Token.ARRAYCOMP:
               return transformArrayComp((ArrayComprehension)node);
@@ -809,13 +812,28 @@ public final class IRFactory extends Parser
     }
 
     private Node transformInfix(InfixExpression node) {
-        Node left = transform(node.getLeft());
-        decompiler.addToken(node.getType());
-        Node right = transform(node.getRight());
-        if (node instanceof XmlDotQuery) {
-            decompiler.addToken(Token.RP);
+        // handle explicitly the case of deeply nested infix expression (e.g. 1+1+1+...)
+        // to avoid exploding the stack.
+        Deque<InfixExpression> contiguousInfixExpressionsStack = new ArrayDeque<>();
+        InfixExpression leftInfix = node;
+        while(true) {
+            contiguousInfixExpressionsStack.push(leftInfix);
+            if (InfixExpression.class.equals(leftInfix.getLeft().getClass())) {
+                leftInfix = (InfixExpression) leftInfix.getLeft();
+            } else {
+                break;
+            }
         }
-        return createBinary(node.getType(), left, right);
+        Node left = transform(contiguousInfixExpressionsStack.peek().getLeft());
+        for (InfixExpression infixExpression : contiguousInfixExpressionsStack) {
+            decompiler.addToken(infixExpression.getType());
+            Node right = transform(infixExpression.getRight());
+            if (infixExpression instanceof XmlDotQuery) {
+                decompiler.addToken(Token.RP);
+            }
+            left = createBinary(infixExpression.getType(), left, right);
+        }
+        return left;
     }
 
     private Node transformLabeledStatement(LabeledStatement ls) {
