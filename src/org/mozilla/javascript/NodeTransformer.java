@@ -11,9 +11,9 @@ import org.mozilla.javascript.ast.Jump;
 import org.mozilla.javascript.ast.Scope;
 import org.mozilla.javascript.ast.ScriptNode;
 
-//import java.util.ArrayDeque;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-//import java.util.Deque;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -71,7 +71,7 @@ public class NodeTransformer
     }
 
     private static boolean isInfixExpression(Node node) {
-        if (node == null) {
+        if (node == null || !node.getClass().equals(Node.class)) {
             return false;
         }
         switch (node.getType()) {
@@ -100,6 +100,8 @@ public class NodeTransformer
         }
     }
 
+    private static final boolean experiment = true;
+
     private void transformCompilationUnit_r(final ScriptNode tree,
                                             final Node parent,
                                             Scope scope,
@@ -109,10 +111,15 @@ public class NodeTransformer
 
         Node node = null;
       siblingLoop:
-        for (;;) {
+        for (int counter = 0;;counter++) {
             Node previous = null;
             if (node == null) {
-                node = /*isInfixExpression(parent) && isInfixExpression(parent.getFirstChild()) ? parent.getFirstChild().getNext() : */parent.getFirstChild();
+                if (experiment && isInfixExpression(parent) && isInfixExpression(parent.getFirstChild())) {
+                    previous = parent.getFirstChild();
+                    node = parent.getFirstChild().getNext();
+                } else {
+                    node = parent.getFirstChild();
+                }
             } else {
                 previous = node;
                 node = node.getNext();
@@ -120,6 +127,12 @@ public class NodeTransformer
             if (node == null) {
                 break;
             }
+            //System.err.println("NODE IS " + node.getType());
+            if (node.getType() == Token.NAME) {
+                String name = node.getString();
+                //System.err.println(node.getString());
+            }
+
 
             int type = node.getType();
             if (createScopeObjects &&
@@ -439,7 +452,7 @@ public class NodeTransformer
               }
             }
 
-            /*if (isInfixExpression(node)) {
+            if (isInfixExpression(node)) {
                 Deque<Node> contiguousInfixExpressionsStack = new ArrayDeque<>();
                 contiguousInfixExpressionsStack.push(node);
                 Node left = node.getFirstChild();
@@ -447,15 +460,19 @@ public class NodeTransformer
                     contiguousInfixExpressionsStack.push(left);
                     left = left.getFirstChild();
                 }
-                for (Node infixNode : contiguousInfixExpressionsStack) {
-                    transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope)infixNode : scope, createScopeObjects, inStrictMode);
-                }
-                return;
-            }*/
 
+                if (experiment) {
+                    for (Node infixNode : contiguousInfixExpressionsStack) {
+                        transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope) infixNode : scope, createScopeObjects, inStrictMode);
+                    }
+
+                    continue ;
+                }
+
+            }
             transformCompilationUnit_r(tree, node,
-                node instanceof Scope ? (Scope)node : scope,
-                createScopeObjects, inStrictMode);
+                    node instanceof Scope ? (Scope)node : scope,
+                    createScopeObjects, inStrictMode);
         }
     }
 

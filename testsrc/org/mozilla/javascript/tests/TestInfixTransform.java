@@ -31,13 +31,13 @@ public class TestInfixTransform extends TestCase {
     public void testAccessingJavaListIntegerValues() {
 
 
-        assertEquals(10, runScriptAsInt("1+value+1+value+1+value+1+value+1+value", 1));
+        assertEquals("test11", runScriptAsString("var O = function(a,b) {this.v = a+b};var f = function (t){return new O('test'+t, t)};f(value).v;", 1));
     }
 
 
 
-    private int runScriptAsInt(String scriptSourceText, Object value) {
-        return runScript(scriptSourceText, value, Context::toNumber).intValue();
+    private String runScriptAsString(String scriptSourceText, Object value) {
+        return runScript(scriptSourceText, value, Context::toString);
     }
 
     private <T> T runScript(String scriptSourceText, Object value, Function<Object, T> convert) {
