@@ -6,9 +6,7 @@
 
 package org.mozilla.javascript;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 import org.mozilla.javascript.ast.ArrayComprehension;
@@ -814,24 +812,29 @@ public final class IRFactory extends Parser
     private Node transformInfix(InfixExpression node) {
         // handle explicitly the case of deeply nested infix expression (e.g. 1+1+1+...)
         // to avoid exploding the stack.
-        Deque<InfixExpression> contiguousInfixExpressionsStack = new ArrayDeque<>();
+        //Deque<InfixExpression> contiguousInfixExpressionsStack = new ArrayDeque<>();
         InfixExpression leftInfix = node;
+        int deep = 0;
         while(true) {
-            contiguousInfixExpressionsStack.push(leftInfix);
+            deep++;
+            //contiguousInfixExpressionsStack.push(leftInfix);
             if (InfixExpression.class.equals(leftInfix.getLeft().getClass())) {
                 leftInfix = (InfixExpression) leftInfix.getLeft();
             } else {
                 break;
             }
         }
-        Node left = transform(contiguousInfixExpressionsStack.peek().getLeft());
-        for (InfixExpression infixExpression : contiguousInfixExpressionsStack) {
-            decompiler.addToken(infixExpression.getType());
-            Node right = transform(infixExpression.getRight());
-            if (infixExpression instanceof XmlDotQuery) {
+        Node left = transform(leftInfix.getLeft());
+        for(int i = 0; i < deep; i++) {
+            decompiler.addToken(leftInfix.getType());
+            Node right = transform(leftInfix.getRight());
+            if (leftInfix instanceof XmlDotQuery) {
                 decompiler.addToken(Token.RP);
             }
-            left = createBinary(infixExpression.getType(), left, right);
+            left = createBinary(leftInfix.getType(), left, right);
+            if (InfixExpression.class.equals(leftInfix.getParent().getClass())) {
+                leftInfix = (InfixExpression) leftInfix.getParent();
+            }
         }
         return left;
     }

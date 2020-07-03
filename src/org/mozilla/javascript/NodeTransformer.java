@@ -100,8 +100,6 @@ public class NodeTransformer
         }
     }
 
-    private static final boolean experiment = true;
-
     private void transformCompilationUnit_r(final ScriptNode tree,
                                             final Node parent,
                                             Scope scope,
@@ -111,10 +109,10 @@ public class NodeTransformer
 
         Node node = null;
       siblingLoop:
-        for (int counter = 0;;counter++) {
+        for (;;) {
             Node previous = null;
             if (node == null) {
-                if (experiment && isInfixExpression(parent) && isInfixExpression(parent.getFirstChild())) {
+                if (isInfixExpression(parent) && isInfixExpression(parent.getFirstChild())) {
                     previous = parent.getFirstChild();
                     node = parent.getFirstChild().getNext();
                 } else {
@@ -127,13 +125,7 @@ public class NodeTransformer
             if (node == null) {
                 break;
             }
-            //System.err.println("NODE IS " + node.getType());
-            if (node.getType() == Token.NAME) {
-                String name = node.getString();
-                //System.err.println(node.getString());
-            }
-
-
+            
             int type = node.getType();
             if (createScopeObjects &&
                 (type == Token.BLOCK || type == Token.LOOP ||
@@ -461,13 +453,11 @@ public class NodeTransformer
                     left = left.getFirstChild();
                 }
 
-                if (experiment) {
-                    for (Node infixNode : contiguousInfixExpressionsStack) {
-                        transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope) infixNode : scope, createScopeObjects, inStrictMode);
-                    }
-
-                    continue ;
+                for (Node infixNode : contiguousInfixExpressionsStack) {
+                    transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope) infixNode : scope, createScopeObjects, inStrictMode);
                 }
+                continue;
+
 
             }
             transformCompilationUnit_r(tree, node,
