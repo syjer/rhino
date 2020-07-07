@@ -3,7 +3,13 @@ package org.mozilla.javascript.optimizer;
 import static org.mozilla.classfile.ClassFileWriter.ACC_PRIVATE;
 import static org.mozilla.classfile.ClassFileWriter.ACC_STATIC;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 import org.mozilla.classfile.ByteCode;
 import org.mozilla.classfile.ClassFileWriter;
