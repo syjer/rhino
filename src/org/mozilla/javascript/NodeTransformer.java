@@ -70,34 +70,8 @@ public class NodeTransformer
 
     }
 
-    private static boolean isInfixExpression(Node node) {
-        if (node == null || !node.getClass().equals(Node.class)) {
-            return false;
-        }
-        switch (node.getType()) {
-            case Token.COMMA:
-            case Token.OR:
-            case Token.AND:
-            case Token.BITOR:
-            case Token.BITXOR:
-            case Token.BITAND:
-            case Token.INSTANCEOF:
-            case Token.LE:
-            case Token.LT:
-            case Token.GE:
-            case Token.GT:
-            case Token.LSH:
-            case Token.URSH:
-            case Token.RSH:
-            case Token.ADD:
-            case Token.SUB:
-            case Token.MUL:
-            case Token.DIV:
-            case Token.MOD:
-                return true;
-            default:
-                return false;
-        }
+    private static boolean isContigousInfixExpression(Node node) {
+        return node != null && Boolean.TRUE.equals(node.getProp(Node.CONTIGUOUS_INFIX_EXPR));
     }
 
     private void transformCompilationUnit_r(final ScriptNode tree,
@@ -112,7 +86,7 @@ public class NodeTransformer
         for (;;) {
             Node previous = null;
             if (node == null) {
-                if (isInfixExpression(parent) && isInfixExpression(parent.getFirstChild())) {
+                if (isContigousInfixExpression(parent) && isContigousInfixExpression(parent.getFirstChild())) {
                     previous = parent.getFirstChild();
                     node = parent.getFirstChild().getNext();
                 } else {
@@ -444,11 +418,11 @@ public class NodeTransformer
               }
             }
 
-            if (isInfixExpression(node)) {
+            if (isContigousInfixExpression(node)) {
                 Deque<Node> contiguousInfixExpressionsStack = new ArrayDeque<>();
                 contiguousInfixExpressionsStack.push(node);
                 Node left = node.getFirstChild();
-                while (isInfixExpression(left)) {
+                while (isContigousInfixExpression(left)) {
                     contiguousInfixExpressionsStack.push(left);
                     left = left.getFirstChild();
                 }

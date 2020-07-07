@@ -832,6 +832,7 @@ public final class IRFactory extends Parser
                 decompiler.addToken(Token.RP);
             }
             left = createBinary(leftInfix.getType(), left, right);
+            left.putProp(Node.CONTIGUOUS_INFIX_EXPR, Boolean.TRUE);
             if (InfixExpression.class.equals(leftInfix.getParent().getClass())) {
                 leftInfix = (InfixExpression) leftInfix.getParent();
             }
