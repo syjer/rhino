@@ -814,9 +814,9 @@ public final class IRFactory extends Parser
         // to avoid exploding the stack.
         //Deque<InfixExpression> contiguousInfixExpressionsStack = new ArrayDeque<>();
         InfixExpression leftInfix = node;
-        int deep = 0;
+        int depth = 0;
         while(true) {
-            deep++;
+            depth++;
             //contiguousInfixExpressionsStack.push(leftInfix);
             if (InfixExpression.class.equals(leftInfix.getLeft().getClass())) {
                 leftInfix = (InfixExpression) leftInfix.getLeft();
@@ -825,7 +825,7 @@ public final class IRFactory extends Parser
             }
         }
         Node left = transform(leftInfix.getLeft());
-        for(int i = 0; i < deep; i++) {
+        for(int i = 0; i < depth; i++) {
             decompiler.addToken(leftInfix.getType());
             Node right = transform(leftInfix.getRight());
             if (leftInfix instanceof XmlDotQuery) {
@@ -837,7 +837,7 @@ public final class IRFactory extends Parser
                 leftInfix = (InfixExpression) leftInfix.getParent();
             }
         }
-        left.putProp(Node.CONTIGUOUS_INFIX_EXPR, deep); //
+        left.putProp(Node.CONTIGUOUS_INFIX_EXPR, depth); //
         return left;
     }
 

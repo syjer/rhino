@@ -417,7 +417,7 @@ public class NodeTransformer
                 contiguousInfixExpressionsStack.push(node);
                 Node left = node.getFirstChild();
                 int contiguousCount = (int) node.getProp(Node.CONTIGUOUS_INFIX_EXPR);
-                for (int i = 0; i < contiguousCount; i++) {
+                for (int i = 0; left !=null && i < contiguousCount; i++) {
                     contiguousInfixExpressionsStack.push(left);
                     left = left.getFirstChild();
                 }
