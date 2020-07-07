@@ -11,9 +11,9 @@ import org.mozilla.javascript.ast.Jump;
 import org.mozilla.javascript.ast.Scope;
 import org.mozilla.javascript.ast.ScriptNode;
 
-import java.util.ArrayDeque;
+//import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+//import java.util.Deque;
 import java.util.List;
 
 /**
