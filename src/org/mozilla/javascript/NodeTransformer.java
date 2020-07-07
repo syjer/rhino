@@ -70,10 +70,6 @@ public class NodeTransformer
 
     }
 
-    private static boolean isContigousInfixExpression(Node node) {
-        return node != null && Boolean.TRUE.equals(node.getProp(Node.CONTIGUOUS_INFIX_EXPR));
-    }
-
     private void transformCompilationUnit_r(final ScriptNode tree,
                                             final Node parent,
                                             Scope scope,
@@ -86,12 +82,7 @@ public class NodeTransformer
         for (;;) {
             Node previous = null;
             if (node == null) {
-                if (isContigousInfixExpression(parent) && isContigousInfixExpression(parent.getFirstChild())) {
-                    previous = parent.getFirstChild();
-                    node = parent.getFirstChild().getNext();
-                } else {
-                    node = parent.getFirstChild();
-                }
+                node = parent.getFirstChild();
             } else {
                 previous = node;
                 node = node.getNext();
@@ -418,21 +409,22 @@ public class NodeTransformer
               }
             }
 
-            if (isContigousInfixExpression(node)) {
+            if (node.getProp(Node.CONTIGUOUS_INFIX_EXPR) != null) {
+                if (Boolean.FALSE.equals(node.getProp(Node.CONTIGUOUS_INFIX_EXPR))) {
+                    continue;
+                }
                 Deque<Node> contiguousInfixExpressionsStack = new ArrayDeque<>();
                 contiguousInfixExpressionsStack.push(node);
                 Node left = node.getFirstChild();
-                while (isContigousInfixExpression(left)) {
+                int contiguousCount = (int) node.getProp(Node.CONTIGUOUS_INFIX_EXPR);
+                for (int i = 0; i < contiguousCount; i++) {
                     contiguousInfixExpressionsStack.push(left);
                     left = left.getFirstChild();
                 }
-
                 for (Node infixNode : contiguousInfixExpressionsStack) {
                     transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope) infixNode : scope, createScopeObjects, inStrictMode);
                 }
                 continue;
-
-
             }
             transformCompilationUnit_r(tree, node,
                     node instanceof Scope ? (Scope)node : scope,

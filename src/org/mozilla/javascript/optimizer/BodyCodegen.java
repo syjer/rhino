@@ -3,13 +3,8 @@ package org.mozilla.javascript.optimizer;
 import static org.mozilla.classfile.ClassFileWriter.ACC_PRIVATE;
 import static org.mozilla.classfile.ClassFileWriter.ACC_STATIC;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
+
 import org.mozilla.classfile.ByteCode;
 import org.mozilla.classfile.ClassFileWriter;
 import org.mozilla.javascript.CompilerEnvirons;
@@ -956,6 +951,10 @@ class BodyCodegen
 
     private void generateExpression(Node node, Node parent)
     {
+        if (node.getProp(Node.CONTIGUOUS_INFIX_EXPR) != null) {
+
+        }
+
         int type = node.getType();
         Node child = node.getFirstChild();
         switch (type) {

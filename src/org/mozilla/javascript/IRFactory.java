@@ -832,11 +832,12 @@ public final class IRFactory extends Parser
                 decompiler.addToken(Token.RP);
             }
             left = createBinary(leftInfix.getType(), left, right);
-            left.putProp(Node.CONTIGUOUS_INFIX_EXPR, Boolean.TRUE);
+            left.putProp(Node.CONTIGUOUS_INFIX_EXPR, Boolean.FALSE); //to be skipped
             if (InfixExpression.class.equals(leftInfix.getParent().getClass())) {
                 leftInfix = (InfixExpression) leftInfix.getParent();
             }
         }
+        left.putProp(Node.CONTIGUOUS_INFIX_EXPR, deep); //
         return left;
     }
 
