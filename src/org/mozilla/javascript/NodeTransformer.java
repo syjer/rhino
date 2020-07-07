@@ -409,7 +409,8 @@ public class NodeTransformer
               }
             }
 
-            if (node.getProp(Node.CONTIGUOUS_INFIX_EXPR) != null) {
+            /*
+              if (node.getProp(Node.CONTIGUOUS_INFIX_EXPR) != null) {
                 if (Boolean.FALSE.equals(node.getProp(Node.CONTIGUOUS_INFIX_EXPR))) {
                     continue;
                 }
@@ -425,7 +426,7 @@ public class NodeTransformer
                     transformCompilationUnit_r(tree, infixNode, infixNode instanceof Scope ? (Scope) infixNode : scope, createScopeObjects, inStrictMode);
                 }
                 continue;
-            }
+            }*/
             transformCompilationUnit_r(tree, node,
                     node instanceof Scope ? (Scope)node : scope,
                     createScopeObjects, inStrictMode);

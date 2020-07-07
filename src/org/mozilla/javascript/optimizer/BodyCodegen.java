@@ -958,7 +958,6 @@ class BodyCodegen
     private void generateExpression(Node node, Node parent)
     {
         if (node.getProp(Node.CONTIGUOUS_INFIX_EXPR) != null) {
-
         }
 
         int type = node.getType();
